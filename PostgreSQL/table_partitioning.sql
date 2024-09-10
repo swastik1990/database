@@ -10,6 +10,7 @@ CREATE TABLE public.department (
 -- INSERT INTO TABLE
 INSERT INTO public.department (name) VALUES ('admin'),('hr'),('sales'),('operation');
 
+\echo 'The total no. of rows in public.department table is :'
 -- SELECT TABLE
 SELECT COUNT(*) FROM public.department;
 
@@ -33,6 +34,7 @@ INSERT INTO public.employee (name, dob, dept_id) VALUES
 ('Christopher J. Date','1975-10-01',4), 
 ('Brian K. Harvey','1980-10-01',4);
 
+\echo 'The total no. of rows in public.employee table is :'
 -- SELECT TABLE
 SELECT COUNT(*) FROM public.employee;
 
@@ -57,5 +59,6 @@ INSERT INTO public.staff_expense (name,expense_date,emp_id,amount) VALUES (
 				generate_series(1,50000,0.25)
 				);
 
+\echo 'The total no. of rows in public.staff_expense table is :'
 -- SELECT TABLE
 SELECT COUNT(*) FROM public.staff_expense;
