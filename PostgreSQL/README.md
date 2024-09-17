@@ -1,6 +1,6 @@
 # Table of Contents
 
-1. **table_partitioning.sql**: Test file to `CREATE` and `INSERT` some test data on sample tables. The corresponding Linkedin Article can be found [here](https://www.linkedin.com/pulse/brief-introduction-postgresql-explain-swastik-gurung-hhuhc/). This script will create three tables, namely:
+1. **sample_data.sql**: Test file to `CREATE` and `INSERT` some test data on sample tables. The corresponding Linkedin Article can be found [here](https://www.linkedin.com/pulse/brief-introduction-postgresql-explain-swastik-gurung-hhuhc/). This script will create three tables, namely:
 
 	- `department` table
 	- `employee` table where `id` PK of `department` table references to `dept_id` FK of this table
@@ -9,7 +9,7 @@
 To import the file simply use a `psql` terminal, such as:
 
 ```bash
-psql table_partitioning < table_partitioning.sql
+psql pg_database < sample_data.sql
 ```
 
 2. **postgresql_monitoring.sql**: Test file to monitor some statistics of the Database Server, consisting of:
@@ -34,4 +34,19 @@ To execute the SQL commands against a database, simply import the sql file using
 psql postgres < postgresql_monitoring.sql
 ```
 
-> **_NOTE:_**  In the above sql, postgres is the name of the database being used. Please change it accordingly, before executing the command.
+> **_NOTE:_** In the above sql, postgres is the name of the database being used. Please change it accordingly, before executing the command.
+
+3. **table_partitioning.sql**: Test file for table partitioning in PostgreSQL. The corresponding Linkedin Article can be found [here](https://www.linkedin.com/pulse/table-partitioning-postgresql-swastik-gurung/). Creates following table with some test data:
+
+	- `sales_order` A base table, without partitioning.
+	- `sales_order_list` Table partitioned by list.
+	- `sales_order_range` Table partitioned by range.
+	- `sales_order_hash` Table partitioned by hash.
+
+To import the file simply use a `psql` terminal, such as:
+
+```bash
+psql pg_database < table_partitioning.sql
+```
+
+> **_NOTE:_** Inside the sql script, we haven't define a DEFAULT partition for Hash, as we won't have any out-of-range data with Hash Partitioning.

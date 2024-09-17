@@ -1,64 +1,113 @@
--- Table Department
--- CREATE TABLE
-CREATE TABLE public.department (
-	id serial4 NOT NULL,
-	"name" varchar NULL,
-	CONSTRAINT dep_id_pk PRIMARY KEY (id),
-	CONSTRAINT dep_name_uniq UNIQUE (name)
-);
+-- create normal table
+CREATE TABLE sales_order 
+    (id integer, 
+    order_no text, 
+    customer text, 
+    amount numeric, 
+    order_region text, 
+    order_date date, 
+    CONSTRAINT id_pkey PRIMARY KEY (id));
 
--- INSERT INTO TABLE
-INSERT INTO public.department (name) VALUES ('admin'),('hr'),('sales'),('operation');
+-- insert some data
+INSERT 
+    INTO
+    sales_order 
+VALUES (generate_series(1, 10000000),
+    'SO' || generate_series(1, 10000000)::text,
+    (array['Ram Sharma', 'Bipin Karki', 'Hari Bastola', 'Swastik Gurung', 'ABC pvt. ltd.', 'Riwaz Ansari'])[floor(random() * 6 + 1)],
+    10.00 + trunc(random() * 1000)::int,
+    (array['Kathmandu', 'Pokhara', 'Nepalgunj', 'Chitwan'])[floor(random() * 4 + 1)],
+    '2020-01-01'::date + trunc(random() * 365 * 4)::int);
 
-\echo 'The total no. of rows in public.department table is :'
--- SELECT TABLE
-SELECT COUNT(*) FROM public.department;
+-- create a table, partitioned using list    
+CREATE TABLE sales_order_list
+    (id integer,
+    order_no text,
+    customer text,
+    amount numeric,
+    order_region text,
+    order_date date,
+    CONSTRAINT id_order_region_pk PRIMARY KEY (id, order_region)) PARTITION BY LIST (order_region);
 
+-- partition for order_region 'Kathmandu'
+CREATE TABLE sales_order_list_p1 PARTITION OF sales_order_list FOR VALUES IN ('Kathmandu');
 
--- Table Employee
--- CREATE TABLE
-CREATE TABLE public.employee (
-	id serial4 NOT NULL,
-	"name" varchar NULL,
-	dob date NULL,
-	dept_id int4 NOT NULL,
-	CONSTRAINT emp_id_pk PRIMARY KEY (id),
-	CONSTRAINT emp_dept_fkey FOREIGN KEY (dept_id) REFERENCES public.department(id) ON DELETE RESTRICT
-);
+-- partition for order_region 'Pokhara'
+CREATE TABLE sales_order_list_p2 PARTITION OF sales_order_list FOR VALUES IN ('Pokhara');
 
--- INSERT INTO TABLE
-INSERT INTO public.employee (name, dob, dept_id) VALUES
-('Ram Sharma','2000-10-12',1), 
-('Bipin Karki','1956-08-22',2), 
-('Swastik Gurung','1983-07-03',3), 
-('Christopher J. Date','1975-10-01',4), 
-('Brian K. Harvey','1980-10-01',4);
+-- partition for order_region 'Nepalgunj'
+CREATE TABLE sales_order_list_p3 PARTITION OF sales_order_list FOR VALUES IN ('Nepalgunj');
 
-\echo 'The total no. of rows in public.employee table is :'
--- SELECT TABLE
-SELECT COUNT(*) FROM public.employee;
+-- partition for order_region 'Chitwan'
+CREATE TABLE sales_order_list_p4 PARTITION OF sales_order_list FOR VALUES IN ('Chitwan');
 
+-- default partition for list
+CREATE TABLE sales_order_list_default PARTITION OF sales_order_list DEFAULT;
 
--- Table Staff Expense
--- CREATE TABLE
-CREATE TABLE public.staff_expense (
-	id serial4 NOT NULL,
-	"name" varchar NOT NULL,
-	expense_date date NULL,
-	emp_id int4 NOT NULL,
-	amount float NOT NULL,
-	CONSTRAINT staff_expense_pk PRIMARY KEY (id),
-	CONSTRAINT staff_emp_fkey FOREIGN KEY (emp_id) REFERENCES public.employee(id) ON DELETE RESTRICT
-);
+\echo 'List partitioned Table and its partitions has been created.'
 
--- INSERT INTO TABLE
-INSERT INTO public.staff_expense (name,expense_date,emp_id,amount) VALUES (
-				(array['Canteen Lunch', 'Visit to Client', 'Fuel Expense', 'First Aid'])[floor(random() * 4 + 1)],
-				(array['2020-10-23', '2021-01-01', '2022-01-10', '2023-01-15', '2023-02-02'])[floor(random() * 5 + 1)]::date,
-				floor(random() * 5 + 1)::int,
-				generate_series(1,50000,0.25)
-				);
+-- copy data from main table
+INSERT INTO sales_order_list SELECT * FROM sales_order;
 
-\echo 'The total no. of rows in public.staff_expense table is :'
--- SELECT TABLE
-SELECT COUNT(*) FROM public.staff_expense;
+\echo 'Data copied into List partitioned Table.'
+
+-- create a table, partitioned using range
+CREATE TABLE sales_order_range
+    (id integer,
+    order_no text,
+    customer text,
+    amount numeric,
+    order_region text,
+    order_date date,
+    CONSTRAINT id_order_date_pk PRIMARY KEY (id, order_date)) PARTITION BY RANGE (order_date);
+
+-- partition for order_date between '2020-01-01' and '2021-01-01'
+CREATE TABLE sales_order_range_p1 PARTITION OF sales_order_range FOR VALUES FROM ('2020-01-01') TO ('2021-01-01');
+
+-- partition for order_date between '2021-01-01' and '2022-01-01'
+CREATE TABLE sales_order_range_p2 PARTITION OF sales_order_range FOR VALUES FROM ('2021-01-01') TO ('2022-01-01');
+
+-- partition for order_date between '2022-01-01' and '2023-01-01'
+CREATE TABLE sales_order_range_p3 PARTITION OF sales_order_range FOR VALUES FROM ('2022-01-01') TO ('2023-01-01');
+
+-- partition for order_date between '2023-01-01' and '2024-01-01'
+CREATE TABLE sales_order_range_p4 PARTITION OF sales_order_range FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+-- default partition for range
+CREATE TABLE sales_order_range_default PARTITION OF sales_order_range DEFAULT;
+
+\echo 'Range partitioned Table and its partitions has been created.'
+
+-- copy data from main table
+INSERT INTO sales_order_range SELECT * FROM sales_order;
+
+\echo 'Data copied into Range partitioned Table.'
+
+-- create a table, partitioned using hash
+CREATE TABLE sales_order_hash
+    (id integer,
+    order_no text,
+    customer text,
+    amount numeric,
+    order_region text,
+    order_date date,
+    CONSTRAINT id_customer_pk PRIMARY KEY (id, customer)) PARTITION BY HASH (customer);
+    
+-- partition for hash value of customer, with remainder 0
+CREATE TABLE sales_order_hash_p1 PARTITION OF sales_order_hash FOR VALUES WITH (MODULUS 4, REMAINDER 0);
+
+-- partition for hash value of customer, with remainder 1
+CREATE TABLE sales_order_hash_p2 PARTITION OF sales_order_hash FOR VALUES WITH (MODULUS 4, REMAINDER 1);
+
+-- partition for hash value of customer, with remainder 2
+CREATE TABLE sales_order_hash_p3 PARTITION OF sales_order_hash FOR VALUES WITH (MODULUS 4, REMAINDER 2);
+
+-- partition for hash value of customer, with remainder 3
+CREATE TABLE sales_order_hash_p4 PARTITION OF sales_order_hash FOR VALUES WITH (MODULUS 4, REMAINDER 3);
+
+\echo 'Hash partitioned Table and its partitions has been created.'
+
+-- copy data from main table
+INSERT INTO sales_order_hash SELECT * FROM sales_order;
+
+\echo 'Data copied into Hash partitioned Table.'
