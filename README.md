@@ -8,6 +8,6 @@ This repository contains scripts and code snippets for various Relational Databa
 
 # How To
 
-To get started on the hands-on exemples, please visit the README section of each topic:
+To get started on the hands-on examples, please visit the README section of each topic:
 
 - [PostgreSQL](PostgreSQL/README.md)

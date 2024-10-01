@@ -50,3 +50,30 @@ psql pg_database < table_partitioning.sql
 ```
 
 > **_NOTE:_** Inside the sql script, we haven't define a DEFAULT partition for Hash, as we won't have any out-of-range data with Hash Partitioning.
+
+4. **user_access.sql**: Test file to introduce the users with GRANT/REVOKE command in PostgreSQL. Upon successful execution of the SQL file, following will happen:
+
+	- A new table `sales_order` is created on the current database, on public schema.
+	- Sample data is populated on `sales_order` table.
+	- A new user `minimal_user` is created with default privileges.
+	- `GRANT` on `SELECT` for the `sales_order` table to the `minimal_user`.
+
+To import the file simply use a `psql` terminal, such as:
+
+```bash
+psql pg_database < user_access.sql
+```
+
+Now, try accessing the database using the new user, and try executing `SELECT` `INSERT` `UPDATE` commands on `sales_order` table.
+
+```bash
+psql -h localhost -U minimal_user pg_database
+```
+
+> **_NOTE:_** The password for the db user `minimal_user` can be found inside the file `user_access.sql`, please use that or change it accordingly. Also, we need to use -h parameter to define the localhost, as peer authentication might not work if the connection is through unix socket, and the username is different.
+
+To revoke the access, simply execute the following SQL command on the desired database:
+
+```sql
+REVOKE SELECT ON sales_order FROM minimal_user;
+```
